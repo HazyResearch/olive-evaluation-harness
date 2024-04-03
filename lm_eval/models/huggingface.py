@@ -119,6 +119,7 @@ class HFLM(LM):
             )
             assert not parallelize, "`parallelize=True` is not compatible with passing pre-initialized model to `pretrained`"
             self._model = pretrained
+            breakpoint()
             self._device = self._model.device
             self._config = self._model.config
             gpus = 0
