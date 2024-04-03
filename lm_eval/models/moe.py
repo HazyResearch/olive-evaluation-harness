@@ -12,7 +12,7 @@ import torch
 
 from train.config import Config
 
-@register_model("moe_lm")
+@register_model("moe")
 class MoELMWrapper(HFLM):
     def __init__(
             self, 
