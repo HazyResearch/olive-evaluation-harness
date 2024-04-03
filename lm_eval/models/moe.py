@@ -3,32 +3,10 @@ import re
 from transformers import AutoTokenizer
 import torch
 
-import json
-import torch
-from transformers.utils import WEIGHTS_NAME, CONFIG_NAME
-from transformers.utils.hub import cached_file
-
 from lm_eval.api.registry import register_model
 from lm_eval.models.huggingface import HFLM
 
-from __future__ import annotations
-from typing import List, Optional, Union
-from pathlib import Path
-
-import torch
-from torch import nn
 import os
-
-import hydra
-from omegaconf import OmegaConf, DictConfig
-from pytorch_lightning import (
-    Callback,
-    LightningDataModule,
-    LightningModule,
-    Trainer,
-    seed_everything,
-)
-
 import sys
 import torch 
 
