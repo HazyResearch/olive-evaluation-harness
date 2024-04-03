@@ -2,7 +2,7 @@ import os
 import sys
 from typing import List, Optional
 
-from lm_eval.__main__ import cli_evaluate
+#from lm_eval.__main__ import cli_evaluate
 
 
 from datetime import datetime
