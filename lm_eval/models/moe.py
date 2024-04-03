@@ -10,9 +10,9 @@ import os
 import sys
 import torch 
 
-breakpoint()
+#breakpoint()
 
-from train.config import Config
+from ..train.config import Config
 
 @register_model("moe")
 class MoELMWrapper(HFLM):
