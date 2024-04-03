@@ -60,7 +60,8 @@ def execute_config(
 @click.option("--limit", default=None, type=int)
 @click.option("--num_fewshot", default=0, type=int)
 def main(
-    model: List[str], 
+    model: List[str],
+    run_id: List[str],
     task: List[str], 
     batch_size: int,
     limit: Optional[int],
@@ -74,7 +75,7 @@ def main(
 
     # Load the given Python file as a module
     configs = [
-        {"model": m, "task": t} for m in model for t in task
+        {"model": m, "run_id": id, "task": t} for m in model for t in task for id in run_id
     ]
 
     use_ray = parallelize and len(configs) > 0
