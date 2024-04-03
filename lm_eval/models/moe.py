@@ -10,7 +10,7 @@ import os
 import sys
 import torch 
 
-from train.config import Config
+from lm_eval.configs import Config
 
 @register_model("moe")
 class MoELMWrapper(HFLM):
