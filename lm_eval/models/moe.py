@@ -10,7 +10,7 @@ import os
 import sys
 import torch 
 
-from lm_eval.train.config import Config # TODO: Uses copy of train directory from Olive! Need to fix
+from train.config import Config
 
 @register_model("moe")
 class MoELMWrapper(HFLM):
