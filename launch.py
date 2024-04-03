@@ -34,7 +34,7 @@ def execute_config(
         "lm_eval",
         "--model", "moe_lm", #"based_lm"
         #"--model_args", f"checkpoint_name={model}",
-        "--model_args", f"run_id={run_id}",
+        "--model_args", f"checkpoint_name={run_id}",
         "--tasks", task,
         "--device", "cuda:0",
         "--batch_size", str(batch_size),
