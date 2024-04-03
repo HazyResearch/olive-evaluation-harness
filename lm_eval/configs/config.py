@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import Optional, List, Tuple, Union, Iterable, Dict, TYPE_CHECKING
 
-from train.utils.utils import import_object, unflatten_dict
+from lm_eval.train.utils.utils import import_object, unflatten_dict
 from pydantic import BaseModel, field_validator, Field
 
 if TYPE_CHECKING:
