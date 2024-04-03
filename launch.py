@@ -1,16 +1,13 @@
 import os
-import sys
 from typing import List, Optional
-
-#from lm_eval.__main__ import cli_evaluate
-
-
 from datetime import datetime
-import os
-import importlib.util
+import json
 
+import wandb
 import click
 from tqdm import tqdm
+
+from train.config import Config
 
 
 MAX_WORKERS_PER_GPU = 1
@@ -48,6 +45,23 @@ def execute_config(
         args.extend(["--limit", str(limit)])
     
     subprocess.run(args)
+
+    # upload results to wandb
+    results = json.load(open(os.path.join(output_dir, "results.json")))
+    train_config = Config.from_wandb(model)
+    wandb.init(
+        project="olive-eval",
+        name=f"{task}-{train_config.name}",
+        config={
+            "train": train_config.to_dict(),
+            "task": results["configs"][task],
+            **results["config"],
+            "git_hash": results["git_hash"],
+            "run_id": model,
+        }
+    )
+    wandb.log(results["results"][task])
+    wandb.finish()
 
 
 

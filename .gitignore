@@ -1,6 +1,7 @@
 env
 *.pyc
 output/
+wandb/
 data/
 lm_cache
 .idea

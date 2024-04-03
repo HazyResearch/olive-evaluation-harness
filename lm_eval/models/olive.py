@@ -11,6 +11,7 @@ from lm_eval.models.huggingface import HFLM
 import os
 import sys
 import torch 
+import wandb
 
 from train.config import Config
 

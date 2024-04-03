@@ -132,6 +132,12 @@ def parse_eval_args() -> argparse.Namespace:
         help="Prints the prompt for the first few documents.",
     )
     parser.add_argument(
+        "--wandb",
+        action="store_true",
+        default=False,
+        help="Logs results to wandb",
+    )
+    parser.add_argument(
         "--log_samples",
         "-s",
         action="store_true",
