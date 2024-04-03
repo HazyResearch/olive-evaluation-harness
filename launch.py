@@ -33,7 +33,7 @@ def execute_config(
 
     args = [
         "lm_eval",
-        "--model", "moe", #"based_lm"
+        "--model", "olive", #"based_lm"
         "--model_args", f"checkpoint_name={model}",
         #"--model_args", f"checkpoint_name={run_id}",
         "--tasks", task,

@@ -8,6 +8,7 @@ from . import vllm_causallms
 from . import mamba_lm
 # from . import based_lm
 from . import moe
+from . import olive
 from . import optimum_lm
 from . import neuron_optimum
 # TODO: implement __all__
