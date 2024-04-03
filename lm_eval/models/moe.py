@@ -3,14 +3,14 @@ import re
 from transformers import AutoTokenizer
 import torch
 
-from lm_eval.api.registry import register_model
-from lm_eval.models.huggingface import HFLM
+#from lm_eval.api.registry import register_model
+#from lm_eval.models.huggingface import HFLM
+from api.registry import register_model
+from models.huggingface import HFLM
 
 import os
 import sys
 import torch 
-
-#breakpoint()
 
 from train.config import Config
 
