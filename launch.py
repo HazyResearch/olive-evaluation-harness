@@ -28,7 +28,7 @@ def execute_config(
     # Save the original standard output
     import subprocess
 
-    output_dir = os.path.join(output_dir, model, task)
+    output_dir = os.path.join(output_dir, model, run_id, task)
 
     args = [
         "lm_eval",
@@ -52,6 +52,7 @@ def execute_config(
 
 @click.command()
 @click.option("-m", "--model", type=str, multiple=True)
+@click.option("-m", "--run_id", type=str, multiple=True)
 @click.option("-t", "--task", type=str, multiple=True)
 @click.option("-p", "--parallelize", is_flag=True)
 @click.option("--gpus", default=None, type=str)
