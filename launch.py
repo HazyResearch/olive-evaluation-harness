@@ -18,6 +18,7 @@ MAX_WORKERS_PER_GPU = 1
 
 def execute_config(
     model: str,
+    run_id: str,
     task: str,
     batch_size: int,
     limit: int,
@@ -31,8 +32,9 @@ def execute_config(
 
     args = [
         "lm_eval",
-        "--model", "based_lm",
-        "--model_args", f"checkpoint_name={model}",
+        "--model", "moe_lm", #"based_lm"
+        #"--model_args", f"checkpoint_name={model}",
+        "--model_args", f"run_id={run_id}",
         "--tasks", task,
         "--device", "cuda:0",
         "--batch_size", str(batch_size),
