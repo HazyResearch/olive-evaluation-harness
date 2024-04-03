@@ -16,7 +16,8 @@ from lm_eval.train.config import Config # TODO: Uses copy of train directory fro
 class MoELMWrapper(HFLM):
     def __init__(
             self, 
-            run_id: str,
+            #run_id: str,
+            checkpoint_name: str,
             config: any=None,
             device: str = "cuda",
             **kwargs
@@ -26,7 +27,8 @@ class MoELMWrapper(HFLM):
             sys.path.append(config.code_path)
 
         # 1: Get configuration from wandb
-        config: Config = Config.from_wandb(run_id)
+        #config: Config = Config.from_wandb(run_id)
+        config: Config = Config.from_wandb(checkpoint_name)
         path = config.checkpointer.dirpath
 
         # 2: Instantiate model

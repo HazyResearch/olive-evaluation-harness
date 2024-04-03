@@ -18,7 +18,7 @@ MAX_WORKERS_PER_GPU = 1
 
 def execute_config(
     model: str,
-    run_id: str,
+    #run_id: str,
     task: str,
     batch_size: int,
     limit: int,
@@ -28,13 +28,14 @@ def execute_config(
     # Save the original standard output
     import subprocess
 
-    output_dir = os.path.join(output_dir, model, run_id, task)
+    #output_dir = os.path.join(output_dir, model, run_id, task)
+    output_dir = os.path.join(output_dir, model, task)
 
     args = [
         "lm_eval",
         "--model", "moe", #"based_lm"
-        #"--model_args", f"checkpoint_name={model}",
-        "--model_args", f"checkpoint_name={run_id}",
+        "--model_args", f"checkpoint_name={model}",
+        #"--model_args", f"checkpoint_name={run_id}",
         "--tasks", task,
         "--device", "cuda:0",
         "--batch_size", str(batch_size),
@@ -52,7 +53,7 @@ def execute_config(
 
 @click.command()
 @click.option("-m", "--model", type=str, multiple=True)
-@click.option("-m", "--run_id", type=str, multiple=True)
+#@click.option("-m", "--run_id", type=str, multiple=True)
 @click.option("-t", "--task", type=str, multiple=True)
 @click.option("-p", "--parallelize", is_flag=True)
 @click.option("--gpus", default=None, type=str)
@@ -61,7 +62,7 @@ def execute_config(
 @click.option("--num_fewshot", default=0, type=int)
 def main(
     model: List[str],
-    run_id: List[str],
+    #run_id: List[str],
     task: List[str], 
     batch_size: int,
     limit: Optional[int],
@@ -75,7 +76,8 @@ def main(
 
     # Load the given Python file as a module
     configs = [
-        {"model": m, "run_id": id, "task": t} for m in model for t in task for id in run_id
+        {"model": m, "task": t} for m in model for t in task
+        #{"model": m, "run_id": id, "task": t} for m in model for t in task for id in run_id
     ]
 
     use_ray = parallelize and len(configs) > 0
