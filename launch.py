@@ -43,25 +43,31 @@ def execute_config(
 
     if limit is not None:
         args.extend(["--limit", str(limit)])
-    
-    subprocess.run(args)
+    try:
+        subprocess.run(args)
 
-    # upload results to wandb
-    results = json.load(open(os.path.join(output_dir, "results.json")))
-    train_config = Config.from_wandb(model)
-    wandb.init(
-        project="olive-eval",
-        name=f"{task}-{train_config.name}",
-        config={
-            "train": train_config.to_dict(),
-            "task": results["configs"][task],
-            **results["config"],
-            "git_hash": results["git_hash"],
-            "run_id": model,
-        }
-    )
-    wandb.log(results["results"][task])
-    wandb.finish()
+        # upload results to wandb
+        results = json.load(open(os.path.join(output_dir, "results.json")))
+        train_config = Config.from_wandb(model)
+        wandb.init(
+            project="olive-eval",
+            name=f"{task}-{train_config.name}",
+            config={
+                "train": train_config.to_dict(),
+                "task": results["configs"][task],
+                **results["config"],
+                "git_hash": results["git_hash"],
+                "run_id": model,
+            }
+        )
+        wandb.log({
+            f"{task}/{k}": v
+            for k,v in results["results"][task].items()
+        })
+        wandb.finish()
+        return args, None
+    except Exception as e:
+        return args, e
 
 
 
@@ -117,16 +123,22 @@ def main(
             )
     else:
         completed = 0
+        failed = 0
         total = len(configs)
         print(f"Completed: {completed} ({completed / total:0.1%}) | Total: {total}")
 
         remote = ray.remote(num_gpus=(1 // MAX_WORKERS_PER_GPU))(execute_config)
-        futures = [remote.remote(**config, batch_size=batch_size, limit=limit, output_dir=output_dir) for config in configs]
+        futures = [remote.remote(**config, batch_size=batch_size, limit=limit, output_dir=output_dir, num_fewshot=num_fewshot) for config in configs]
         
         while futures:
             complete, futures = ray.wait(futures)
-            completed += len(complete)
-            print(f"Completed: {completed} ({completed / total:0.1%}) | Total: {total}")
+            for config, error in ray.get(complete):
+                if error is not None:
+                    failed += 1
+                    print(config)
+                    print(error)
+                completed += 1
+            print(f"Completed: {completed} ({completed / total:0.1%} -- {failed} failed) | Total: {total}")
 
         ray.shutdown()
 
