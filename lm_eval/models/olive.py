@@ -31,6 +31,7 @@ class OliveLMWrapper(HFLM):
 
         # 1: Get configuration from wandb
         #config: Config = Config.from_wandb(run_id)
+        
         config: Config = Config.from_wandb(checkpoint_name)
         path = config.checkpointer.dirpath
 
@@ -40,7 +41,12 @@ class OliveLMWrapper(HFLM):
         # 3: Load model
         # load the state dict, but remove the "model." prefix and all other keys from the
         # the PyTorch Lightning module that are not in the actual model
-        ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
+        try:
+            ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
+        except FileNotFoundError:
+            run_id = checkpoint_name.split("/")[-1]
+            path = os.path.join(config.checkpointer.dirpath, config.sweep_id, config.name, run_id)
+            ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
 
         print("Checkpoint Path: " + path)
 
