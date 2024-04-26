@@ -1,12 +1,12 @@
 group: bigbench_generate_until
-dataset_path: hails/bigbench
+dataset_path: hotpot_qa #hails/bigbench
 output_type: generate_until
 dataset_kwargs:
   # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
   # subtask_name: null
-test_split: default
-doc_to_text: inputs
-doc_to_target: "{{targets[0]}}"
+test_split: validation
+doc_to_text: question
+doc_to_target: "{{answer[0]}}"
 generation_kwargs:
   max_length: 128
 metric_list:

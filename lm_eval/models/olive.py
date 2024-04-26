@@ -43,10 +43,14 @@ class OliveLMWrapper(HFLM):
         # the PyTorch Lightning module that are not in the actual model
         try:
             ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
-        except FileNotFoundError:
-            run_id = checkpoint_name.split("/")[-1]
-            path = os.path.join(config.checkpointer.dirpath, config.sweep_id, config.name, run_id)
-            ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
+        except: # FileNotFoundError:
+            try:
+                run_id = checkpoint_name.split("/")[-1]
+                path = os.path.join(config.checkpointer.dirpath, config.sweep_id, config.name, run_id)
+                ckpt = torch.load(os.path.join(path, "last.ckpt"), map_location=torch.device(device))
+            except:
+                ckpt = torch.load(config.checkpointer.dirpath + config.name + "/" + run_id + "/" + "last.ckpt", map_location=torch.device(device))
+                
 
         print("Checkpoint Path: " + path)
 
