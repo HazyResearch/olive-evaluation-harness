@@ -16,10 +16,11 @@ import wandb
 from tqdm import tqdm
 
 from train.config import Config
+from train.modeling_llama_flash import LlamaForCausalContextLM
 
 import torch
 from transformers import LlamaTokenizer
-from modeling_llama_flash import LlamaForCausalContextLM
+#from modeling_llama_flash import LlamaForCausalContextLM
 
 @register_model("augment")
 class AugmentLMWrapper(HFLM):
