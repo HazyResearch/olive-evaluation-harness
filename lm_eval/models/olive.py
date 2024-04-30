@@ -12,6 +12,7 @@ import os
 import sys
 import torch 
 import wandb
+from tqdm import tqdm
 
 from train.config import Config
 
@@ -80,3 +81,77 @@ class OliveLMWrapper(HFLM):
             device=device,
             **kwargs,
         )
+
+    ################################################
+
+    def _model_generate(self, context, max_length, stop, **generation_kwargs):
+        for key in ("do_sample", "attention_mask"):
+            if key in generation_kwargs:
+                generation_kwargs.pop(key)
+
+        # olive's custom GenerationMixin currently does not support
+        # passing stopping criteria.
+        # for the time being, we simply generate to max length,
+        # then truncate (equivalent result)
+        # -- this should be revisited to speed up generation
+        # stopping_criteria = stop_sequences_criteria(
+        #     self.tokenizer, stop, 1, context.shape[0]
+        # )
+
+        #breakpoint()
+
+        """
+        current_context = context[10].unsqueeze(0)
+        decoded_prompt = self.tokenizer.decode(current_context)
+        print(decoded_prompt)
+        output = self.model.generate(input_ids=current_context,max_length=max_length,**generation_kwargs,)
+        decoded_output = self.tokenizer.decode(output[0])
+        print(decoded_output)
+
+
+
+        prompt = "Question: " + requests[0].doc['question'] + " Answer:"
+        #prompt = requests[i].doc['question']
+
+        input = self.tokenizer.encode(prompt, return_tensors="pt").to("cuda")
+        output = self.model.generate(input, max_length=32)
+            
+        decoded_output = self.tokenizer.decode(output[0])
+        print(decoded_output)
+        """
+
+        return self.model.generate(
+            input_ids=context,
+            max_length=max_length,
+            # stopping_criteria=stopping_criteria,
+            # pad_token_id=self.tokenizer.pad_token_id,
+            # use_cache=True,
+            **generation_kwargs,
+        )
+    
+    ################################################
+
+    """def generate_until(self, requests):
+        
+        res = []
+
+        #breakpoint()
+
+        print("Performing generate_until!")
+        for i in tqdm(range(len(requests))):
+            
+            prompt = "Question: " + requests[0].doc['question'] + " Answer:"
+            #prompt = requests[i].doc['question']
+
+            input = self.tokenizer.encode(prompt, return_tensors="pt").to("cuda")
+            output = self.model.generate(input, max_length=32)
+            
+            decoded_output = self.tokenizer.decode(output[0])
+            #print(decoded_output)
+            assert decoded_output.strip() != ""
+
+            res.append(decoded_output)
+
+        ########################
+
+        return res"""

@@ -1,0 +1,5 @@
+nohup: ignoring input
+Usage: python -m train.launch [OPTIONS] PYTHON_FILE
+Try 'python -m train.launch --help' for help.
+
+Error: Invalid value for 'PYTHON_FILE': Path 'train/configs/jon/m04d25_hotpotqa_pretraining.py' does not exist.

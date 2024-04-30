@@ -66,14 +66,3 @@ class MoELMWrapper(HFLM):
             device=device,
             **kwargs,
         )
-
-    def generate_until(self, requests):
-        res = []
-
-        breakpoint()
-
-        for ctx, _ in requests:
-            res.append("lol")
-            assert ctx.strip() != ""
-
-        return res

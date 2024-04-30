@@ -1,41 +1,43 @@
-#group: bigbench_generate_until
-#dataset_path: hotpot_qa #hails/bigbench
-#dataset_path: fullwiki
-#output_type: generate_until
-#dataset_kwargs:
-#test_split: train
-#doc_to_text: "Question: {{question}}\nAnswer:"
-#doc_to_target: "{{answer}}"
-#generation_kwargs:
-#  max_length: 128
-#metric_list:
-#  - metric: f1 #exact_match
-#    aggregation: mean
-#    higher_is_better: true
-#    ignore_punctuation: true
-#metadata:
-#  version: 1.0
+group: bigbench_generate_until
+dataset_path: hotpot_qa #hails/bigbench
+dataset_path: fullwiki
+evaluation_count: 1000
+output_type: generate_until
+dataset_kwargs:
+test_split: validation
+doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_target: "{{answer}}"
+generation_kwargs:
+  max_length: 2048
+metric_list:
+  - metric: f1 #exact_match
+    aggregation: !function utils.macro_f1_score #mean
+    average: macro
+    higher_is_better: true
+    ignore_punctuation: true
+metadata:
+  version: 1.0
 
 ############################################################
 
-group: bigbench_generate_until
-dataset_name: hotpot_qa
-dataset_path: fullwiki
-output_type: multiple_choice
+#group: bigbench_generate_until
+#dataset_name: hotpot_qa
+#dataset_path: fullwiki
+#output_type: multiple_choice
 
-training_split: validation
-validation_split: validation
-test_split: validation
-dataset_split: validation
+#training_split: validation
+#validation_split: validation
+#test_split: validation
+#dataset_split: validation
 
-doc_to_text: "Question: {{question}}\nAnswer:"
-doc_to_target: 0
-doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''']"
+#doc_to_text: "Question: {{question}}\nAnswer:"
+#doc_to_target: 0
+#doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''']"
 #doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''', '''The answer is unknown.''']"
 #doc_to_choice: "['''{{context['title'][0]}}\\nIs the answer correct? yes''', '''{{context['title'][1]}}\\nIs the answer correct? yes''', '''{{context['title'][2]}}\\nIs the answer correct? yes''', '''{{context['title'][3]}}\\nIs the answer correct? yes''']"
-metric_list:
-  - metric: acc
-metadata:
-  version: 2.0
+#metric_list:
+#  - metric: acc
+#metadata:
+#  version: 2.0
 
 

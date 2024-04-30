@@ -53,6 +53,7 @@ class TaskConfig(dict):
     # and what splits for what purpose
     dataset_path: str = None
     dataset_name: str = None
+    evaluation_count: int = None
     dataset_kwargs: dict = None
     training_split: str = None
     validation_split: str = None
@@ -604,6 +605,9 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
+        if self.config.evaluation_count is not None:
+            self.evaluation_count = self.config.evaluation_count
+
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
         self._aggregation_list = {}
@@ -781,7 +785,10 @@ class ConfigurableTask(Task):
                 **dataset_kwargs if dataset_kwargs is not None else {},
             )
         except:
+            #breakpoint()
             self.dataset = datasets.load_dataset(self.DATASET_NAME, self.DATASET_PATH)
+            self.dataset['train'] = self.dataset['train'].shuffle(seed=42).select(range(self.evaluation_count))
+            self.dataset['validation'] = self.dataset['validation'].shuffle(seed=42).select(range(self.evaluation_count))
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:
