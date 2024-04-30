@@ -7,8 +7,8 @@ from . import gguf
 from . import vllm_causallms
 from . import mamba_lm
 # from . import based_lm
-#from . import moe
-#from . import olive
+from . import moe
+from . import olive
 from . import augment
 from . import optimum_lm
 from . import neuron_optimum
