@@ -175,14 +175,14 @@ from transformers.activations import ACT2FN
 from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast, SequenceClassifierOutputWithPast, MaskedLMOutput
 from transformers.modeling_utils import PreTrainedModel
 from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
-from transformers.utils import (
-    add_start_docstrings,
-    add_start_docstrings_to_model_forward,
-    is_flash_attn_available,
-    logging,
-    replace_return_docstrings,
-    ModelOutput,
-)
+#from transformers.utils import (
+#    add_start_docstrings,
+#    add_start_docstrings_to_model_forward,
+#    is_flash_attn_available,
+#    logging,
+#    replace_return_docstrings,
+#    ModelOutput,
+#)
 from transformers.models.llama.configuration_llama import LlamaConfig
 
 
