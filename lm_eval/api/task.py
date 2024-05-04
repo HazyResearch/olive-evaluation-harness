@@ -787,8 +787,12 @@ class ConfigurableTask(Task):
         except:
             #breakpoint()
             self.dataset = datasets.load_dataset(self.DATASET_NAME, self.DATASET_PATH)
-            self.dataset['train'] = self.dataset['train'].shuffle(seed=42).select(range(self.evaluation_count))
-            self.dataset['validation'] = self.dataset['validation'].shuffle(seed=42).select(range(self.evaluation_count))
+            #self.dataset['train'] = self.dataset['train'].shuffle(seed=42).select(range(self.evaluation_count))
+            #self.dataset['validation'] = self.dataset['validation'].shuffle(seed=42).select(range(self.evaluation_count))
+            self.dataset_cutoff = 10
+            print("Cutting off dataset at: ", self.dataset_cutoff)
+            self.dataset["train"] = self.dataset["train"].select(range(self.dataset_cutoff))
+            self.dataset['validation'] = self.dataset["validation"].select(range(self.dataset_cutoff))
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:

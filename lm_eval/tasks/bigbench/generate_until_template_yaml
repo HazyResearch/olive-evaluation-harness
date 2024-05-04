@@ -1,14 +1,19 @@
 group: bigbench_generate_until
 dataset_path: hotpot_qa #hails/bigbench
 dataset_path: fullwiki
-evaluation_count: 1000
+evaluation_count: 100
 output_type: generate_until
 dataset_kwargs:
-test_split: validation
-doc_to_text: "Question: {{question}}\nAnswer:"
+
+test_split: train
+#fewshot_split: train
+#num_fewshot: 3
+
+#doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{answer}}"
 generation_kwargs:
-  max_length: 2048
+  max_length: 2048 #2048, 32
 metric_list:
   - metric: f1 #exact_match
     aggregation: !function utils.macro_f1_score #mean
