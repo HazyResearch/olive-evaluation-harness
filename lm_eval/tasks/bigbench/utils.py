@@ -36,3 +36,14 @@ def macro_f1_score(items):
     preds = unzipped_list[1]
     fscore = f1_score(golds, preds, average='macro')
     return fscore
+
+def doc_to_text(doc):
+
+    assert type(doc['context']['sentences']) == list
+    assert type(doc['context']['sentences'][0]) == list
+    assert type(doc['context']['sentences'][0][0]) == str
+
+    #doc_text = (" ").join([("").join(sentence_list) for sentence_list in doc['context']['sentences']])
+    #doc_text += f"\n\nQuestion: {doc['question']}\nAnswer:"
+    doc_text = f"Question: {doc['question']}\nAnswer:"
+    return doc_text
