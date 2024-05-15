@@ -1,18 +1,49 @@
 group: bigbench_generate_until
-dataset_path: hails/bigbench
+dataset_path: hotpot_qa #hails/bigbench
+dataset_path: fullwiki
+evaluation_count: 100
 output_type: generate_until
 dataset_kwargs:
-  # num_shots: 0 # TODO: num of shots for `bigbench` HF dataset should be controlled through this, not through the typical methods
-  # subtask_name: null
-test_split: default
-doc_to_text: inputs
-doc_to_target: "{{targets[0]}}"
+
+test_split: train
+#fewshot_split: train
+#num_fewshot: 3
+
+#doc_to_text: "Question: {{question}}\nAnswer:"
+doc_to_text: !function utils.doc_to_text
+doc_to_target: "{{answer}}"
 generation_kwargs:
-  max_gen_toks: 128
+max_gen_toks: 128
+
 metric_list:
-  - metric: exact_match
-    aggregation: mean
+  - metric: f1 #exact_match
+    aggregation: !function utils.macro_f1_score #mean
+    average: macro
     higher_is_better: true
     ignore_punctuation: true
 metadata:
   version: 1.0
+
+############################################################
+
+#group: bigbench_generate_until
+#dataset_name: hotpot_qa
+#dataset_path: fullwiki
+#output_type: multiple_choice
+
+#training_split: validation
+#validation_split: validation
+#test_split: validation
+#dataset_split: validation
+
+#doc_to_text: "Question: {{question}}\nAnswer:"
+#doc_to_target: 0
+#doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''']"
+#doc_to_choice: "['''{{answer}}\\nIs the answer correct? yes''', '''{{answer}}\\nIs the answer correct? no''', '''The answer is unknown.''']"
+#doc_to_choice: "['''{{context['title'][0]}}\\nIs the answer correct? yes''', '''{{context['title'][1]}}\\nIs the answer correct? yes''', '''{{context['title'][2]}}\\nIs the answer correct? yes''', '''{{context['title'][3]}}\\nIs the answer correct? yes''']"
+#metric_list:
+#  - metric: acc
+#metadata:
+#  version: 2.0
+
+

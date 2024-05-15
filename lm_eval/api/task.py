@@ -70,6 +70,7 @@ class TaskConfig(dict):
     fewshot_split: Optional[
         str
     ] = None  # TODO: assert that this not None if num_fewshot > 0. (?) assert if this is same split as one evaling (?)
+
     # formatting / prompting options.
     # see docs/advanced_task_guide.md for more info
     process_docs: Optional[Callable] = None
@@ -263,7 +264,7 @@ class Task(abc.ABC):
             - `datasets.DownloadMode.FORCE_REDOWNLOAD`
                 Fresh download and fresh dataset.
         """
-        breakpoint()
+        #breakpoint()
         self.dataset = datasets.load_dataset(
             path=self.DATASET_PATH,
             name=self.DATASET_NAME,
@@ -713,6 +714,9 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
+        if self.config.evaluation_count is not None:
+            self.evaluation_count = self.config.evaluation_count
+
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
         self._aggregation_list = {}
@@ -903,6 +907,7 @@ class ConfigurableTask(Task):
             name=self.DATASET_NAME,
             **dataset_kwargs if dataset_kwargs is not None else {},
         )
+
 
     def has_training_docs(self) -> bool:
         if self.config.training_split is not None:

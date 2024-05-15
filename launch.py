@@ -1,23 +1,22 @@
 import os
-import sys
 from typing import List, Optional
-
-from lm_eval.__main__ import cli_evaluate
-
-
 from datetime import datetime
-import os
-import importlib.util
+import json
 
+import wandb
 import click
 from tqdm import tqdm
+
+from train.config import Config
 
 
 MAX_WORKERS_PER_GPU = 1
 
 
 def execute_config(
+    model_cls: str, 
     model: str,
+    #run_id: str,
     task: str,
     batch_size: int,
     limit: int,
@@ -27,29 +26,70 @@ def execute_config(
     # Save the original standard output
     import subprocess
 
+    #output_dir = os.path.join(output_dir, model, run_id, task)
     output_dir = os.path.join(output_dir, model, task)
-
-    args = [
-        "lm_eval",
-        "--model", "based_lm",
-        "--model_args", f"checkpoint_name={model}",
-        "--tasks", task,
-        "--device", "cuda:0",
-        "--batch_size", str(batch_size),
-        "--log_samples",
-        "--output_path", output_dir,
-        "--num_fewshot", str(num_fewshot)
-    ]
+    if model_cls == "olive":
+        args = [
+            "lm_eval",
+            "--model", "olive", #"based_lm"
+            "--model_args", f"checkpoint_name={model}",
+            #"--model_args", f"checkpoint_name={run_id}",
+            "--tasks", task,
+            "--device", "cuda:0",
+            "--batch_size", str(batch_size),
+            "--log_samples",
+            "--output_path", output_dir,
+            "--num_fewshot", str(num_fewshot)
+        ]
+    else: 
+        args = [
+            "lm_eval",
+            "--model", "hf", #"based_lm"
+            "--model_args", f"pretrained={model}",
+            #"--model_args", f"checkpoint_name={run_id}",
+            "--tasks", task,
+            "--device", "cuda:0",
+            "--batch_size", str(batch_size),
+            "--log_samples",
+            "--output_path", output_dir,
+            "--num_fewshot", str(num_fewshot),
+            "--gen_kwargs", "max_new_tokens=12"
+        ]
 
     if limit is not None:
         args.extend(["--limit", str(limit)])
-    
-    subprocess.run(args)
+    try:
+        subprocess.run(args)
+
+        # upload results to wandb
+        results = json.load(open(os.path.join(output_dir, "results.json")))
+        train_config = Config.from_wandb(model)
+        wandb.init(
+            project="olive-eval",
+            name=f"{task}-{train_config.name}",
+            config={
+                "train": train_config.to_dict(),
+                "task": results["configs"][task],
+                **results["config"],
+                "git_hash": results["git_hash"],
+                "run_id": model,
+            }
+        )
+        wandb.log({
+            f"{task}/{k}": v
+            for k,v in results["results"][task].items()
+        })
+        wandb.finish()
+        return args, None
+    except Exception as e:
+        return args, e
 
 
 
 @click.command()
+@click.option("-c", "--model-cls", type=str, default="olive")
 @click.option("-m", "--model", type=str, multiple=True)
+#@click.option("-m", "--run_id", type=str, multiple=True)
 @click.option("-t", "--task", type=str, multiple=True)
 @click.option("-p", "--parallelize", is_flag=True)
 @click.option("--gpus", default=None, type=str)
@@ -57,7 +97,9 @@ def execute_config(
 @click.option("--limit", default=None, type=int)
 @click.option("--num_fewshot", default=0, type=int)
 def main(
-    model: List[str], 
+    model_cls: str, 
+    model: List[str],
+    #run_id: List[str],
     task: List[str], 
     batch_size: int,
     limit: Optional[int],
@@ -72,6 +114,7 @@ def main(
     # Load the given Python file as a module
     configs = [
         {"model": m, "task": t} for m in model for t in task
+        #{"model": m, "run_id": id, "task": t} for m in model for t in task for id in run_id
     ]
 
     use_ray = parallelize and len(configs) > 0
@@ -90,6 +133,7 @@ def main(
         for config in configs: 
             execute_config(
                 **config,
+                model_cls=model_cls,
                 batch_size=batch_size,
                 limit=limit,
                 output_dir=output_dir,
@@ -97,16 +141,22 @@ def main(
             )
     else:
         completed = 0
+        failed = 0
         total = len(configs)
         print(f"Completed: {completed} ({completed / total:0.1%}) | Total: {total}")
 
         remote = ray.remote(num_gpus=(1 // MAX_WORKERS_PER_GPU))(execute_config)
-        futures = [remote.remote(**config, batch_size=batch_size, limit=limit, output_dir=output_dir) for config in configs]
+        futures = [remote.remote(**config, batch_size=batch_size, limit=limit, output_dir=output_dir, num_fewshot=num_fewshot) for config in configs]
         
         while futures:
             complete, futures = ray.wait(futures)
-            completed += len(complete)
-            print(f"Completed: {completed} ({completed / total:0.1%}) | Total: {total}")
+            for config, error in ray.get(complete):
+                if error is not None:
+                    failed += 1
+                    print(config)
+                    print(error)
+                completed += 1
+            print(f"Completed: {completed} ({completed / total:0.1%} -- {failed} failed) | Total: {total}")
 
         ray.shutdown()
 
