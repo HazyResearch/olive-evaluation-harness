@@ -14,6 +14,7 @@ MAX_WORKERS_PER_GPU = 1
 
 
 def execute_config(
+    model_cls: str, 
     model: str,
     #run_id: str,
     task: str,
@@ -27,19 +28,33 @@ def execute_config(
 
     #output_dir = os.path.join(output_dir, model, run_id, task)
     output_dir = os.path.join(output_dir, model, task)
-
-    args = [
-        "lm_eval",
-        "--model", "olive", #"based_lm"
-        "--model_args", f"checkpoint_name={model}",
-        #"--model_args", f"checkpoint_name={run_id}",
-        "--tasks", task,
-        "--device", "cuda:0",
-        "--batch_size", str(batch_size),
-        "--log_samples",
-        "--output_path", output_dir,
-        "--num_fewshot", str(num_fewshot)
-    ]
+    if model_cls == "olive":
+        args = [
+            "lm_eval",
+            "--model", "olive", #"based_lm"
+            "--model_args", f"checkpoint_name={model}",
+            #"--model_args", f"checkpoint_name={run_id}",
+            "--tasks", task,
+            "--device", "cuda:0",
+            "--batch_size", str(batch_size),
+            "--log_samples",
+            "--output_path", output_dir,
+            "--num_fewshot", str(num_fewshot)
+        ]
+    else: 
+        args = [
+            "lm_eval",
+            "--model", "hf", #"based_lm"
+            "--model_args", f"pretrained={model}",
+            #"--model_args", f"checkpoint_name={run_id}",
+            "--tasks", task,
+            "--device", "cuda:0",
+            "--batch_size", str(batch_size),
+            "--log_samples",
+            "--output_path", output_dir,
+            "--num_fewshot", str(num_fewshot),
+            "--gen_kwargs", "max_new_tokens=12"
+        ]
 
     if limit is not None:
         args.extend(["--limit", str(limit)])
@@ -72,6 +87,7 @@ def execute_config(
 
 
 @click.command()
+@click.option("-c", "--model-cls", type=str, default="olive")
 @click.option("-m", "--model", type=str, multiple=True)
 #@click.option("-m", "--run_id", type=str, multiple=True)
 @click.option("-t", "--task", type=str, multiple=True)
@@ -81,6 +97,7 @@ def execute_config(
 @click.option("--limit", default=None, type=int)
 @click.option("--num_fewshot", default=0, type=int)
 def main(
+    model_cls: str, 
     model: List[str],
     #run_id: List[str],
     task: List[str], 
@@ -116,6 +133,7 @@ def main(
         for config in configs: 
             execute_config(
                 **config,
+                model_cls=model_cls,
                 batch_size=batch_size,
                 limit=limit,
                 output_dir=output_dir,
