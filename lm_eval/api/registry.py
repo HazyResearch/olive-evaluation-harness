@@ -1,7 +1,8 @@
 import logging
 from typing import Callable, Dict
 
-import evaluate
+import evaluate as hf_evaluate
+
 from lm_eval.api.model import LM
 
 
@@ -77,6 +78,7 @@ METRIC_REGISTRY = {}
 METRIC_AGGREGATION_REGISTRY = {}
 AGGREGATION_REGISTRY: Dict[str, Callable[[], Dict[str, Callable]]] = {}
 HIGHER_IS_BETTER_REGISTRY = {}
+FILTER_REGISTRY = {}
 
 DEFAULT_METRIC_REGISTRY = {
     "loglikelihood": [
@@ -128,7 +130,7 @@ def get_metric(name: str, hf_evaluate_metric=False) -> Callable:
             )
 
     try:
-        metric_object = evaluate.load(name)
+        metric_object = hf_evaluate.load(name)
         return metric_object.compute
     except Exception:
         eval_logger.error(
@@ -169,3 +171,22 @@ def is_higher_better(metric_name) -> bool:
         eval_logger.warning(
             f"higher_is_better not specified for metric '{metric_name}'!"
         )
+
+
+def register_filter(name):
+    def decorate(cls):
+        if name in FILTER_REGISTRY:
+            eval_logger.info(
+                f"Registering filter `{name}` that is already in Registry {FILTER_REGISTRY}"
+            )
+        FILTER_REGISTRY[name] = cls
+        return cls
+
+    return decorate
+
+
+def get_filter(filter_name: str) -> type:
+    try:
+        return FILTER_REGISTRY[filter_name]
+    except KeyError:
+        eval_logger.warning(f"filter `{filter_name}` is not registered!")

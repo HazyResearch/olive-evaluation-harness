@@ -4,11 +4,11 @@ import random
 from collections.abc import Iterable
 from typing import List
 
+import evaluate as hf_evaluate
 import numpy as np
 import sacrebleu
 import sklearn.metrics
 
-import evaluate
 from lm_eval.api.registry import register_aggregation, register_metric
 
 
@@ -116,6 +116,25 @@ def ter(items):
     return sacrebleu.corpus_ter(preds, refs).score
 
 
+@register_aggregation("brier_score")
+def brier_score(items):  # This is a passthrough function
+    gold, predictions = list(zip(*items))
+    gold = list(gold)
+    gold_one_hot = np.eye(np.max(gold) + 1)[gold]
+    predictions = list(zip(*items))[1]
+    return np.mean(np.sum((predictions - gold_one_hot) ** 2, axis=1))
+
+
+@register_metric(
+    metric="brier_score",
+    higher_is_better=False,
+    output_type=["multiple_choice"],
+    aggregation="brier_score",
+)
+def brier_score_fn(items):  # This is a passthrough function
+    return items
+
+
 @register_metric(
     metric="acc",
     higher_is_better=True,
@@ -146,7 +165,7 @@ def acc_mutual_info_fn(items):  # This is a passthrough function
     return items
 
 
-exact_match = evaluate.load("exact_match")
+exact_match = hf_evaluate.load("exact_match")
 
 
 @register_metric(
