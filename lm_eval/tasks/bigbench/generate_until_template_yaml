@@ -13,7 +13,8 @@ test_split: train
 doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{answer}}"
 generation_kwargs:
-  max_length: 2048 #2048, 32
+max_gen_toks: 128
+
 metric_list:
   - metric: f1 #exact_match
     aggregation: !function utils.macro_f1_score #mean
