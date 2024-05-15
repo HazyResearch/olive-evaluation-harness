@@ -9,8 +9,8 @@ test_split: train
 #fewshot_split: train
 #num_fewshot: 3
 
-#doc_to_text: "Question: {{question}}\nAnswer:"
-doc_to_text: !function utils.doc_to_text
+doc_to_text: "Question: {{question}}\nAnswer:"
+# doc_to_text: !function utils.doc_to_text
 doc_to_target: "{{answer}}"
 generation_kwargs:
   max_length: 2048 #2048, 32

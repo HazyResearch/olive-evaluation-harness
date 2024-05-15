@@ -53,7 +53,7 @@ def execute_config(
             "--log_samples",
             "--output_path", output_dir,
             "--num_fewshot", str(num_fewshot),
-            "--gen_kwargs", "max_new_tokens=12"
+            "--gen_kwargs", "max_new_tokens=12",
         ]
 
     if limit is not None:
