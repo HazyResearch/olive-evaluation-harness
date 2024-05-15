@@ -1,12 +1,12 @@
 """
 """
+import re
 from typing import List
 
-import re
 import numpy as np
 
-from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
+from lm_eval.api.task import ConfigurableTask
 
 
 class FDA(ConfigurableTask):
@@ -15,7 +15,7 @@ class FDA(ConfigurableTask):
     DATASET_NAME = "default"
 
     def __init__(self):
-        super().__init__(config={'metadata': {'version': self.VERSION}})
+        super().__init__(config={"metadata": {"version": self.VERSION}})
 
     def has_training_docs(self):
         return False
@@ -34,7 +34,6 @@ class FDA(ConfigurableTask):
 
     def doc_to_target(self, doc):
         return doc["value"]
-        
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -70,9 +69,7 @@ class FDA(ConfigurableTask):
         # continuation, (logprob_unanswerable, _) = results
         continuation = results
 
-        return {
-            "contains": contains_score(continuation[0], [doc["value"]])
-        }
+        return {"contains": contains_score(continuation[0], [doc["value"]])}
 
     def aggregation(self):
         """
@@ -93,7 +90,6 @@ class FDA(ConfigurableTask):
         return {
             "contains": True,  # Exact match (the normalized answer exactly match the gold answer
         }
-    
 
 def contains_score(prediction: str, labels: List[str]):
     return max(

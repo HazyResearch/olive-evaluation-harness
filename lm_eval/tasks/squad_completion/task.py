@@ -1,5 +1,6 @@
 """
 """
+<<<<<<< HEAD
 from typing import List
 
 import re
@@ -7,6 +8,15 @@ import numpy as np
 
 from lm_eval.api.task import ConfigurableTask
 from lm_eval.api.instance import Instance
+=======
+import re
+from typing import List
+
+import numpy as np
+
+from lm_eval.api.instance import Instance
+from lm_eval.api.task import ConfigurableTask
+>>>>>>> a9eaaf46f1e246e5ce090e37f2f99fe1cfe5a919
 
 
 class SQUADCompletion(ConfigurableTask):
@@ -15,7 +25,11 @@ class SQUADCompletion(ConfigurableTask):
     DATASET_NAME = "default"
 
     def __init__(self):
+<<<<<<< HEAD
         super().__init__(config={'metadata': {'version': self.VERSION}})
+=======
+        super().__init__(config={"metadata": {"version": self.VERSION}})
+>>>>>>> a9eaaf46f1e246e5ce090e37f2f99fe1cfe5a919
 
     def has_training_docs(self):
         return False
@@ -34,7 +48,11 @@ class SQUADCompletion(ConfigurableTask):
 
     def doc_to_target(self, doc):
         return doc["value"]
+<<<<<<< HEAD
         
+=======
+
+>>>>>>> a9eaaf46f1e246e5ce090e37f2f99fe1cfe5a919
     def construct_requests(self, doc, ctx, **kwargs):
         """Uses RequestFactory to construct Requests and returns an iterable of
         Requests which will be sent to the LM.
@@ -70,9 +88,13 @@ class SQUADCompletion(ConfigurableTask):
         # continuation, (logprob_unanswerable, _) = results
         continuation = results
 
+<<<<<<< HEAD
         return {
             "contains": contains_score(continuation[0], [doc["value"]])
         }
+=======
+        return {"contains": contains_score(continuation[0], [doc["value"]])}
+>>>>>>> a9eaaf46f1e246e5ce090e37f2f99fe1cfe5a919
 
     def aggregation(self):
         """
@@ -93,7 +115,11 @@ class SQUADCompletion(ConfigurableTask):
         return {
             "contains": True,  # Exact match (the normalized answer exactly match the gold answer
         }
+<<<<<<< HEAD
     
+=======
+
+>>>>>>> a9eaaf46f1e246e5ce090e37f2f99fe1cfe5a919
 
 def contains_score(prediction: str, labels: List[str]):
     return max(
