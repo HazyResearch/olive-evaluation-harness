@@ -15,7 +15,7 @@ from transformers.generation import StoppingCriteriaList
 
 import lm_eval.models.utils
 from lm_eval import utils
-from lm_eval.api.model import LM
+from lm_eval.api.model import TemplateLM
 from lm_eval.api.registry import register_model
 from lm_eval.models.utils import stop_sequences_criteria
 
@@ -172,7 +172,7 @@ class CustomNeuronModelForCausalLM(NeuronModelForCausalLM):
 
 
 @register_model("neuronx")
-class NEURON_HF(LM):
+class NEURON_HF(TemplateLM):
     """
     Enables usage with on AWS Neuron
     using the HuggingFace Transformers + Transformers neuronx library.
@@ -195,8 +195,7 @@ class NEURON_HF(LM):
         low_cpu_mem_usage: Optional[bool] = True,
         trust_remote_code: Optional[bool] = False,
         use_fast_tokenizer: Optional[bool] = True,
-        # arguments used for splitting a model across GPUs naively.
-        # only used if `parallelize=True`.
+        add_bos_token: Optional[bool] = False,
     ) -> None:
         if not NEURON_AVAILABLE:
             raise Exception(
@@ -289,6 +288,7 @@ class NEURON_HF(LM):
 
         self.vocab_size = self.tokenizer.vocab_size
         self.tokenizer.pad_token_id = self.tokenizer.eos_token_id
+        self.add_bos_token = self.add_bos_token
 
         self._max_length = max_length
 
@@ -304,6 +304,11 @@ class NEURON_HF(LM):
     def eot_token_id(self):
         # we use EOT because end of *text* is more accurate for what we're doing than end of *sentence*
         return self.tokenizer.eos_token_id
+
+    @property
+    def prefix_token_id(self):
+        # it is used as prefix for loglikelihood
+        return self.tokenizer.bos_token_id or self.tokenizer.eos_token_id
 
     @property
     def max_length(self):
@@ -343,7 +348,7 @@ class NEURON_HF(LM):
     def tok_encode(self, string: str, left_truncate_len=None, add_special_tokens=None):
         """ """
         if add_special_tokens is None:
-            add_special_tokens = False
+            add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer.encode(string, add_special_tokens=add_special_tokens)
 
@@ -364,7 +369,7 @@ class NEURON_HF(LM):
         old_padding_side = self.tokenizer.padding_side
         self.tokenizer.padding_side = padding_side
 
-        add_special_tokens = False
+        add_special_tokens = False or self.add_bos_token
 
         encoding = self.tokenizer(
             strings,
@@ -447,49 +452,20 @@ class NEURON_HF(LM):
 
         return logits
 
-    def _encode_pair(self, context, continuation):
-        n_spaces = len(context) - len(context.rstrip())
-        if n_spaces > 0:
-            continuation = context[-n_spaces:] + continuation
-            context = context[:-n_spaces]
-
-        whole_enc = self.tok_encode(context + continuation, add_special_tokens=False)
-        context_enc = self.tok_encode(context, add_special_tokens=False)
-
-        # whole_enc = self.tok_encode(context + continuation)
-        # context_enc = self.tok_encode(context, add_special_tokens=False)
-        context_enc_len = len(context_enc)
-        continuation_enc = whole_enc[context_enc_len:]
-        return context_enc, continuation_enc
-
-    def loglikelihood(self, requests):
-        new_reqs = []
-        for context, continuation in [req.args for req in requests]:
-            if context == "":
-                # end of text as context
-                context_enc, continuation_enc = (
-                    [self.eot_token_id],
-                    self.tok_encode(continuation),
-                )
-            else:
-                context_enc, continuation_enc = self._encode_pair(context, continuation)
-
-            new_reqs.append(((context, continuation), context_enc, continuation_enc))
-
-        return self._loglikelihood_tokens(new_reqs)
-
-    def loglikelihood_rolling(self, requests):
+    def loglikelihood_rolling(self, requests, disable_tqdm: bool = False):
         loglikelihoods = []
 
         adaptive_batch_size = None
 
-        for (string,) in tqdm([req.args for req in requests], disable=(self.rank != 0)):
+        for (string,) in tqdm(
+            [req.args for req in requests], disable=(disable_tqdm or (self.rank != 0))
+        ):
             rolling_token_windows = list(
                 map(
                     utils.make_disjoint_window,
                     utils.get_rolling_token_windows(
                         token_list=self.tok_encode(string),
-                        prefix_token=self.eot_token_id,
+                        prefix_token=self.prefix_token_id,
                         max_seq_len=self.max_length,
                         context_len=1,
                     ),
@@ -647,7 +623,7 @@ class NEURON_HF(LM):
 
         return re_ord.get_original(res)
 
-    def generate_until(self, requests):
+    def generate_until(self, requests, disable_tqdm: bool = False):
         res = defaultdict(list)
         re_ords = {}
 
@@ -669,7 +645,7 @@ class NEURON_HF(LM):
             # within each set of reqs for given kwargs, we reorder by token length, descending.
             re_ords[key] = utils.Reorderer([req.args for req in reqs], _collate)
 
-        pbar = tqdm(total=len(requests), disable=(self.rank != 0))
+        pbar = tqdm(total=len(requests), disable=(disable_tqdm or (self.rank != 0)))
 
         # for each different set of kwargs, we execute all requests, by batch.
         for key, re_ord in re_ords.items():
@@ -688,7 +664,7 @@ class NEURON_HF(LM):
                     if "until" in kwargs.keys():
                         until = kwargs.pop("until")
                         if isinstance(until, str):
-                            until = [kwargs]
+                            until = [until]
                         elif not isinstance(until, list):
                             raise ValueError(
                                 f"Expected `kwargs['until']` to be of type Union[str,list] but got {until}"
@@ -697,8 +673,12 @@ class NEURON_HF(LM):
                     raise ValueError(
                         f"Expected `kwargs` to be of type `dict` but got {kwargs}"
                     )
+                # add EOS token to stop sequences
+                eos = self.tok_decode(self.eot_token_id)
                 if not until:
-                    until = [self.tok_decode(self.eot_token_id)]
+                    until = [eos]
+                else:
+                    until.append(eos)
                 if "max_gen_toks" in kwargs.keys():
                     max_gen_toks = kwargs.pop("max_gen_toks")
                 else:
