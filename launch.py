@@ -43,9 +43,10 @@ def execute_config(
         ]
     else: 
         args = [
+            "python", "-m",
             "lm_eval",
-            "--model", "hf", #"based_lm"
-            "--model_args", f"pretrained={model}",
+            "--model", "hf-mod", #"based_lm"
+            "--model_args", f"pretrained={model},layer_swaps=16:0",
             #"--model_args", f"checkpoint_name={run_id}",
             "--tasks", task,
             "--device", "cuda:0",
@@ -54,6 +55,8 @@ def execute_config(
             "--output_path", output_dir,
             "--num_fewshot", str(num_fewshot),
             "--gen_kwargs", "max_new_tokens=12",
+            "--wandb",
+            "--wandb_args", "entity=hazy-research,project=olive-eval,job_type=eval"
         ]
 
     if limit is not None:
@@ -95,7 +98,7 @@ def execute_config(
 @click.option("--gpus", default=None, type=str)
 @click.option("--batch-size", default=8, type=int)
 @click.option("--limit", default=None, type=int)
-@click.option("--num_fewshot", default=0, type=int)
+@click.option("--num-fewshot", default=0, type=int)
 def main(
     model_cls: str, 
     model: List[str],

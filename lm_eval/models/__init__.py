@@ -3,6 +3,7 @@ from . import (
     dummy,
     gguf,
     huggingface,
+    huggingface_mod,
     mamba_lm,
     nemo_lm,
     neuralmagic,

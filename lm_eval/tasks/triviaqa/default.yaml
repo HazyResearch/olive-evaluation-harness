@@ -4,7 +4,7 @@ dataset_name: rc.nocontext
 output_type: generate_until
 training_split: train
 validation_split: validation
-doc_to_text: "Question: {{question}}?\nAnswer:"
+doc_to_text: "Q: {{question}}?\nA:"
 doc_to_target: "{{answer.aliases}}"
 should_decontaminate: true
 doc_to_decontamination_query: question

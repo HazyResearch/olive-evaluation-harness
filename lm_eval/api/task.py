@@ -714,8 +714,8 @@ class ConfigurableTask(Task):
         if self.config.dataset_name is not None:
             self.DATASET_NAME = self.config.dataset_name
 
-        if self.config.evaluation_count is not None:
-            self.evaluation_count = self.config.evaluation_count
+        # if self.config.evaluation_count is not None:
+        #     self.evaluation_count = self.config.evaluation_count
 
         self._metric_fn_list = {}
         self._metric_fn_kwargs = {}
