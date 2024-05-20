@@ -28,12 +28,12 @@ def execute_config(
 
     #output_dir = os.path.join(output_dir, model, run_id, task)
     output_dir = os.path.join(output_dir, model, task)
-    if model_cls == "olive":
+    if model_cls in ["olive", "olive-recipes"]:
         args = [
+            "python", "-m",
             "lm_eval",
-            "--model", "olive", #"based_lm"
+            "--model", model_cls, #"based_lm"
             "--model_args", f"checkpoint_name={model}",
-            #"--model_args", f"checkpoint_name={run_id}",
             "--tasks", task,
             "--device", "cuda:0",
             "--batch_size", str(batch_size),
@@ -46,7 +46,7 @@ def execute_config(
             "python", "-m",
             "lm_eval",
             "--model", "hf-mod", #"based_lm"
-            "--model_args", f"pretrained={model},layer_swaps=16:0",
+            "--model_args", f"pretrained={model}",
             #"--model_args", f"checkpoint_name={run_id}",
             "--tasks", task,
             "--device", "cuda:0",

@@ -8,6 +8,7 @@ from . import (
     nemo_lm,
     neuralmagic,
     neuron_optimum,
+    olive,
     openai_completions,
     optimum_lm,
     textsynth,

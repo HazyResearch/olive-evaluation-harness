@@ -71,11 +71,14 @@ class EvalConfig(RunConfig):
 MAX_WORKERS_PER_GPU = 1
 
 def evaluate(args: EvalConfig) -> None:
-    args.wandb_args = args.wandb_args + f",name={args.name}"
+    args.wandb_args = args.wandb_args + f",name={args.run_id}"
 
 
     if args.wandb_args:
         wandb_logger = WandbLogger(**simple_parse_args_string(args.wandb_args))
+        
+        # SE: Added the below 
+        wandb_logger.run.config.update(args.to_dict())
 
     eval_logger = utils.eval_logger
     eval_logger.setLevel(getattr(logging, f"{args.verbosity}"))

@@ -155,3 +155,46 @@ class OliveLMWrapper(HFLM):
         ########################
 
         return res"""
+    
+
+
+@register_model("olive-recipes")
+class OliveRecipesLMWrapper(HFLM):
+    def __init__(
+        self, 
+        checkpoint_name: str,
+        config: any=None,
+        max_length: int = 2048,
+        device: str = "cuda",
+        **kwargs
+    ) -> None:
+        from llama_recipes.configs.training import TrainConfig
+        from llama_recipes.model_checkpointing.checkpoint_handler import get_save_dir, load_model_checkpoint
+
+        # 1: Get configuration from wandb
+        #config: Config = Config.from_wandb(run_id)
+        
+        config: TrainConfig = TrainConfig.from_wandb(checkpoint_name)
+
+        # 2: Instantiate model
+        model = config.model.instantiate(train_config=config)
+
+        load_model_checkpoint(model, rank=0, cfg=config)
+        model.to(device=device)
+
+        # 4: load tokenizer if it's available
+        if config.tokenizer_name is not None:
+            from transformers import AutoTokenizer
+            tokenizer = AutoTokenizer.from_pretrained(config.datamodule.tokenizer_name)
+        else:
+            tokenizer = None
+        
+        super().__init__(
+            pretrained=model,
+            # set appropriate defaults for tokenizer, max length, etc
+            #backend=kwargs.get("backend", "causal"),
+            max_length=max_length,
+            tokenizer=tokenizer,
+            device=device,
+            **kwargs,
+        )
